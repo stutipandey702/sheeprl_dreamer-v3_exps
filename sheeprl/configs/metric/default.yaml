@@ -1,6 +1,6 @@
 defaults:
   - _self_
-  - /logger@logger: tensorboard
+  - /logger@logger: wandb
 
 log_every: 5000
 disable_timer: False
