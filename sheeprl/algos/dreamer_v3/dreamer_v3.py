@@ -700,6 +700,13 @@ def main(fabric: Fabric, cfg: Dict[str, Any]):
 
         # Log metrics
         if cfg.metric.log_level > 0 and (policy_step - last_log >= cfg.metric.log_every or iter_num == total_iters):
+            if fabric.is_global_zero and aggregator and not aggregator.disabled:
+                metrics_dict = aggregator.compute()
+                fabric.log_dict(metrics_dict, policy_step)
+                aggregator.reset()
+                # Debug print to confirm metrics are computed
+                fabric.print(f"W&B metrics at step {policy_step}: {metrics_dict}")
+            
             # Sync distributed metrics
             if aggregator and not aggregator.disabled:
                 metrics_dict = aggregator.compute()

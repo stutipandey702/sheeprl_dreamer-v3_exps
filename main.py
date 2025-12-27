@@ -4,6 +4,8 @@ main.py
 Entry point for running SheepRL experiments from exp.sh.
 Accepts arbitrary CLI arguments and passes them to sheeprl.
 """
+import os
+os.environ['MUJOCO_GL'] = 'osmesa'
 
 import sys
 import subprocess

@@ -27,35 +27,19 @@ FLAGS = parser.parse_args()
 os.makedirs(FLAGS.result_directory, exist_ok=True)
 
 def make_arguments(seed):
-    # Base key arguments
-    key_args = {
-        "seed": seed
-    }
-
-    # Parse FLAGS.extra_args into dicts for splitting
+    # Parse FLAGS.extra_args
     extra = FLAGS.extra_args.split() if FLAGS.extra_args else []
-    key_args_list = []
-    extra_args_list = []
-
+    
+    args_list = []
+    
     for token in extra:
-        if "=" in token:
-            k, v = token.split("=", 1)
-            # Treat exp, env, env.id as required keys
-            if k in ["exp", "env", "env.id"]:
-                key_args_list.append(f"{k}={v}")
-            else:
-                extra_args_list.append(f"+{k}={v}")
-        else:
-            # Treat as positional override
-            extra_args_list.append(token)
-
-    # Seed argument
-    key_args_list.append(f"seed={seed}")
-
-
-    # Join everything
-    args = key_args_list + extra_args_list
-    return " ".join(args)
+        # Pass through tokens as-is - don't add extra + symbols
+        args_list.append(token)
+    
+    # Add seed
+    args_list.append(f"seed={seed}")
+    
+    return " ".join(args_list)
 
 def submit_job(seed):
     args = make_arguments(seed)
@@ -85,13 +69,14 @@ def submit_job(seed):
         sub += "+WantGPULab = true\n"
         sub += '+GPUJobLength = "medium"\n'
         sub += "request_gpus = 1\n"
-        sub += "gpus_minimum_memory = 20000\n"
+        sub += "+GPU_MEMORY = 20000\n"  # MB
+        sub += "request_cpus = 4\n"
         sub += "request_memory = 50GB\n"
-
-    sub += "request_cpus = 4\n"
-    sub += "request_memory = 16GB\n"
-    sub += "request_disk = 20GB\n"
-    sub += "queue\n"
+        sub += "request_disk = 50GB\n"
+    else:
+        sub += "request_cpus = 4\n"
+        sub += "request_memory = 16GB\n"
+        sub += "request_disk = 50GB\n"
 
     # Submit the job
     p = subprocess.Popen("condor_submit", stdin=subprocess.PIPE, text=True)

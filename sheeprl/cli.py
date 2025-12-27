@@ -103,6 +103,27 @@ def run_algorithm(cfg: Dict[str, Any]):
         if logger and fabric.is_global_zero:
             fabric._loggers = [logger]
             fabric.logger.log_hyperparams(cfg)
+
+            import wandb
+
+            wandb_config = {
+                            "seed": cfg.seed,
+                            "env": cfg.env,
+                            "algo": cfg.algo,
+                        }
+
+            project = f"sheeprl-{cfg.algo.name}"
+            group = cfg.env.id
+            name = f"seed{cfg.seed}"
+
+            wandb_run = wandb.init(
+                project=project,
+                group=group,
+                name=name,
+                config=wandb_config,
+                sync_tensorboard=True,
+            )            
+            print(f"[W&B] Initialized run {wandb_run.id} at {wandb_run.dir}")
     else:
         strategy = cfg.fabric.get("strategy", "auto")
         if "sac_ae" in module:
@@ -147,6 +168,27 @@ def run_algorithm(cfg: Dict[str, Any]):
                 cfg.fabric.devices = exploration_cfg.fabric.devices
                 cfg.fabric.num_nodes = exploration_cfg.fabric.num_nodes
         fabric: Fabric = hydra.utils.instantiate(cfg.fabric, strategy=strategy, _convert_="all")
+
+        import wandb
+
+        wandb_config = {
+            "seed": cfg.seed,
+            "env": cfg.env,
+            "algo": cfg.algo,
+        }
+
+        project = f"sheeprl-{cfg.algo.name}"
+        group = cfg.env.id
+        name = f"seed{cfg.seed}"
+
+        wandb_run = wandb.init(
+            project=project,
+            group=group,
+            name=name,
+            config=wandb_config,
+            sync_tensorboard=True,
+        )
+        print(f"[W&B] Initialized run {wandb_run.id} at {wandb_run.dir}")
 
     if hasattr(cfg, "metric") and cfg.metric is not None:
         predefined_metric_keys = set()
